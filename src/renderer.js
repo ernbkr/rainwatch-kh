@@ -1,6 +1,7 @@
 const BASE_FRAME_DELAY_MS = 250;
 const DEFAULT_DOMAIN = 'PHN';
 const MAP_CONFIG = window.RADAR_MAP_CONFIG;
+const TERRAIN = MAP_CONFIG?.terrain || null;
 
 const overflowButton = document.getElementById('overflowButton');
 const overflowMenu = document.getElementById('overflowMenu');
@@ -16,6 +17,9 @@ const rangeEndLabel = document.getElementById('rangeEndLabel');
 const sequenceProgressFill = document.getElementById('sequenceProgressFill');
 const speedSlider = document.getElementById('speedSlider');
 const speedValue = document.getElementById('speedValue');
+const terrainControl = document.getElementById('terrainControl');
+const terrainSlider = document.getElementById('terrainExaggeration');
+const terrainValueLabel = document.getElementById('terrainExaggerationValue');
 const errorLine = document.getElementById('errorLine');
 const calibrationPanel = document.getElementById('calibrationPanel');
 const calibrationAreaLabel = document.getElementById('calibrationAreaLabel');
@@ -43,6 +47,7 @@ const rotateCounterClockwiseButton = document.getElementById('rotateCounterClock
 
 const RADAR_SOURCE_ID = 'radar-overlay';
 const RADAR_LAYER_ID = 'radar-overlay-layer';
+const HILLSHADE_LAYER_ID = 'mapterhorn-hillshade';
 const TRANSPARENT_IMAGE_URL =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mP8z8BQDwAFgwJ/lmXbWQAAAABJRU5ErkJggg==';
 
@@ -64,6 +69,8 @@ let areCalibrationControlsBound = false;
 let lastErrorMessage = '';
 let activeOverlayUrl = '';
 let radarOpacity = MAP_CONFIG?.radarOpacity ?? 0.68;
+let is3DEnabled = false;
+let terrainExaggeration = TERRAIN?.exaggeration ?? 1.5;
 
 const AREA_LABELS = Object.freeze({
   PHN: '80 KM',
@@ -209,7 +216,7 @@ function syncMapView() {
     center: view.center,
     zoom: view.zoom,
     bearing: 0,
-    pitch: 0
+    pitch: is3DEnabled && TERRAIN ? TERRAIN.pitch : 0
   });
 }
 
@@ -434,6 +441,115 @@ function rotateCoordinates(degrees) {
   });
 }
 
+function registerTerrainProtocol() {
+  if (
+    typeof maplibregl === 'undefined' ||
+    typeof pmtiles === 'undefined' ||
+    !window.RadarTerrain ||
+    !TERRAIN
+  ) {
+    return;
+  }
+
+  const protocol = new pmtiles.Protocol({ metadata: true });
+  const prefix = `${TERRAIN.protocol}://`;
+
+  maplibregl.addProtocol(TERRAIN.protocol, async (params, abortController) => {
+    const [z, x, y] = params.url.replace(prefix, '').split('/').map(Number);
+    const response = await protocol.tile(
+      { ...params, url: window.RadarTerrain.mapterhornTileUrl(z, x, y) },
+      abortController
+    );
+    if (response.data === null) {
+      throw new Error(`Terrain tile z=${z} x=${x} y=${y} not found.`);
+    }
+    return response;
+  });
+}
+
+function firstSymbolLayerId() {
+  const layers = map?.getStyle()?.layers || [];
+  return layers.find((layer) => layer.type === 'symbol')?.id;
+}
+
+function addTerrainSourceAndHillshade() {
+  if (!map || !TERRAIN || map.getSource(TERRAIN.sourceId)) {
+    return;
+  }
+
+  map.addSource(TERRAIN.sourceId, {
+    type: 'raster-dem',
+    tiles: [...TERRAIN.tiles],
+    encoding: TERRAIN.encoding,
+    tileSize: TERRAIN.tileSize,
+    attribution: TERRAIN.attribution
+  });
+  map.addLayer(
+    {
+      id: HILLSHADE_LAYER_ID,
+      type: 'hillshade',
+      source: TERRAIN.sourceId,
+      layout: { visibility: 'none' }
+    },
+    firstSymbolLayerId()
+  );
+}
+
+function applyTerrainState() {
+  if (!map || !TERRAIN || !map.getSource(TERRAIN.sourceId)) {
+    return;
+  }
+
+  map.setTerrain(
+    is3DEnabled ? { source: TERRAIN.sourceId, exaggeration: terrainExaggeration } : null
+  );
+  if (map.getLayer(HILLSHADE_LAYER_ID)) {
+    map.setLayoutProperty(HILLSHADE_LAYER_ID, 'visibility', is3DEnabled ? 'visible' : 'none');
+  }
+}
+
+function updateTerrainValueLabel() {
+  if (terrainValueLabel) {
+    terrainValueLabel.textContent = `${terrainExaggeration.toFixed(1)}×`;
+  }
+}
+
+function syncTerrainControls() {
+  const toggle = overflowMenu.querySelector('[data-action="toggle-3d"]');
+  if (toggle) {
+    toggle.setAttribute('aria-checked', String(is3DEnabled));
+  }
+  if (terrainControl) {
+    terrainControl.hidden = !is3DEnabled;
+  }
+}
+
+function set3DEnabled(isEnabled) {
+  if (!TERRAIN) {
+    return;
+  }
+
+  is3DEnabled = isEnabled;
+  syncTerrainControls();
+  applyTerrainState();
+
+  if (map) {
+    map.easeTo({ pitch: isEnabled ? TERRAIN.pitch : 0, bearing: 0, duration: 600 });
+  }
+}
+
+function initializeTerrainControls() {
+  if (!TERRAIN || !terrainSlider) {
+    return;
+  }
+
+  terrainSlider.min = String(TERRAIN.minExaggeration);
+  terrainSlider.max = String(TERRAIN.maxExaggeration);
+  terrainSlider.value = String(terrainExaggeration);
+  updateTerrainValueLabel();
+  syncTerrainControls();
+}
+
 function initializeMap() {
   if (!MAP_CONFIG?.styleUrl || typeof maplibregl === 'undefined') {
     setMapError('Map context unavailable.');
@@ -454,11 +570,14 @@ function initializeMap() {
     });
 
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
+    map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
 
     map.on('load', () => {
       hasLoadedMapStyle = true;
       setMapError('');
+      addTerrainSourceAndHillshade();
       addRadarOverlay();
+      applyTerrainState();
       syncMapView();
       updateRadarOverlayImage(frames[currentFrameIndex]);
       syncCalibrationPanel();
@@ -791,6 +910,11 @@ overflowMenu.addEventListener('click', async (event) => {
     return;
   }
 
+  if (target.dataset.action === 'toggle-3d') {
+    set3DEnabled(!is3DEnabled);
+    return;
+  }
+
   if (target.dataset.domain) {
     await switchArea(target.dataset.domain);
   }
@@ -820,6 +944,16 @@ speedSlider.addEventListener('input', () => {
   updateSpeedDisplay();
   restartPlaybackTimer();
 });
+
+if (terrainSlider) {
+  terrainSlider.addEventListener('input', () => {
+    terrainExaggeration = Number(terrainSlider.value);
+    updateTerrainValueLabel();
+    if (is3DEnabled) {
+      applyTerrainState();
+    }
+  });
+}
 
 function bindCalibrationControls() {
   if (areCalibrationControlsBound) {
@@ -873,10 +1007,12 @@ window.addEventListener('beforeunload', () => {
   }
 });
 
+registerTerrainProtocol();
 initializeMap();
 scheduleNextRefresh();
 syncAreaMenu();
 initializeRuntimeConfig();
+initializeTerrainControls();
 updateSpeedDisplay();
 updateTimeline({ resetProgress: true });
 loadFrames({ reason: 'initial', clearExisting: true });

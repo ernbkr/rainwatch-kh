@@ -54,6 +54,15 @@
                 450 KM
               </button>
               <div class="menu-separator" role="separator"></div>
+              <button
+                type="button"
+                role="menuitemcheckbox"
+                data-action="toggle-3d"
+                aria-checked="false"
+              >
+                3D Terrain
+              </button>
+              <div class="menu-separator" role="separator"></div>
               <button type="button" role="menuitem" data-action="quit">Quit</button>
             </div>
           </div>
@@ -131,6 +140,19 @@
             aria-label="Calibration output"
           ></textarea>
         </aside>
+        <div class="terrain-control" id="terrainControl" hidden>
+          <span class="label">Terrain</span>
+          <input
+            id="terrainExaggeration"
+            type="range"
+            min="0"
+            max="3"
+            step="0.1"
+            value="1.5"
+            aria-label="Terrain exaggeration"
+          />
+          <strong id="terrainExaggerationValue">1.5×</strong>
+        </div>
       </section>
 
       <footer class="timeline-strip">
@@ -172,6 +194,8 @@
     </main>
 
     <script src="../node_modules/maplibre-gl/dist/maplibre-gl.js"></script>
+    <script src="../node_modules/pmtiles/dist/pmtiles.js"></script>
+    <script src="./terrain.js"></script>
     <script src="./map-config.js"></script>
     <script src="./renderer.js"></script>
   </body>

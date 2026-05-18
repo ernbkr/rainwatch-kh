@@ -1,6 +1,18 @@
 window.RADAR_MAP_CONFIG = Object.freeze({
   styleUrl: 'https://tiles.openfreemap.org/styles/liberty',
   radarOpacity: 0.65,
+  terrain: Object.freeze({
+    sourceId: 'mapterhorn-terrain',
+    protocol: 'mapterhorn',
+    tiles: Object.freeze(['mapterhorn://{z}/{x}/{y}']),
+    encoding: 'terrarium',
+    tileSize: 512,
+    attribution: '<a href="https://mapterhorn.com/attribution">© Mapterhorn</a>',
+    exaggeration: 1.5,
+    minExaggeration: 0,
+    maxExaggeration: 3,
+    pitch: 60
+  }),
   imageLayout: Object.freeze({
     width: 1069,
     height: 800,

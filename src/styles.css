@@ -290,6 +290,35 @@ input[type="number"] {
   display: none;
 }
 
+.terrain-control {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  z-index: 5;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid #3a4247;
+  border-radius: 8px;
+  background: rgb(21 25 27 / 92%);
+  box-shadow: 0 12px 28px rgb(0 0 0 / 38%);
+}
+
+.terrain-control[hidden] {
+  display: none;
+}
+
+.terrain-control input[type="range"] {
+  width: 140px;
+}
+
+.terrain-control strong {
+  min-width: 36px;
+  font-size: 12px;
+  text-align: right;
+}
+
 .calibration-header {
   display: flex;
   align-items: center;
