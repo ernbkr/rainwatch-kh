@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data: blob: http: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; worker-src blob:; connect-src 'self' data: blob: http: https:;"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cambodia Radar</title>
+    <link rel="stylesheet" href="../node_modules/maplibre-gl/dist/maplibre-gl.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="status-grid" aria-live="polite">
+        <div>
+          <span class="label">Latest</span>
+          <strong id="latestLabel">-</strong>
+        </div>
+        <div>
+          <span class="label">Current</span>
+          <strong id="currentLabel">-</strong>
+        </div>
+        <div>
+          <span class="label">Last Checked</span>
+          <strong id="lastCheckedLabel">-</strong>
+        </div>
+        <div>
+          <span class="label">Next Check</span>
+          <strong id="nextCheckLabel">-</strong>
+        </div>
+        <div class="status-actions">
+          <div class="overflow">
+            <button
+              id="overflowButton"
+              class="icon-button"
+              type="button"
+              aria-label="Open app menu"
+              aria-haspopup="menu"
+              aria-expanded="false"
+            >
+              ...
+            </button>
+            <div id="overflowMenu" class="overflow-menu" role="menu" hidden>
+              <button type="button" role="menuitem" data-action="refresh">Refresh</button>
+              <button type="button" role="menuitemradio" data-domain="PHN" aria-checked="true">
+                80 KM
+              </button>
+              <button type="button" role="menuitemradio" data-domain="240KM" aria-checked="false">
+                240 KM
+              </button>
+              <button type="button" role="menuitemradio" data-domain="CAMBODIA" aria-checked="false">
+                450 KM
+              </button>
+              <div class="menu-separator" role="separator"></div>
+              <button type="button" role="menuitem" data-action="quit">Quit</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="viewer" aria-label="Radar animation">
+        <div id="mapPanel" class="map-panel" aria-label="Static map context"></div>
+        <div id="emptyState" class="empty-state">Loading radar frames...</div>
+        <aside
+          id="calibrationPanel"
+          class="calibration-panel"
+          aria-label="Map calibration controls"
+          hidden
+        >
+          <div class="calibration-header">
+            <strong>Georeference</strong>
+            <span id="calibrationAreaLabel">80 KM</span>
+          </div>
+          <label>
+            <span>Top Left</span>
+            <div class="coordinate-row">
+              <input id="topLeftLng" type="number" step="0.001" aria-label="Top left longitude" />
+              <input id="topLeftLat" type="number" step="0.001" aria-label="Top left latitude" />
+            </div>
+          </label>
+          <label>
+            <span>Top Right</span>
+            <div class="coordinate-row">
+              <input id="topRightLng" type="number" step="0.001" aria-label="Top right longitude" />
+              <input id="topRightLat" type="number" step="0.001" aria-label="Top right latitude" />
+            </div>
+          </label>
+          <label>
+            <span>Bottom Right</span>
+            <div class="coordinate-row">
+              <input id="bottomRightLng" type="number" step="0.001" aria-label="Bottom right longitude" />
+              <input id="bottomRightLat" type="number" step="0.001" aria-label="Bottom right latitude" />
+            </div>
+          </label>
+          <label>
+            <span>Bottom Left</span>
+            <div class="coordinate-row">
+              <input id="bottomLeftLng" type="number" step="0.001" aria-label="Bottom left longitude" />
+              <input id="bottomLeftLat" type="number" step="0.001" aria-label="Bottom left latitude" />
+            </div>
+          </label>
+          <label>
+            <span>Opacity</span>
+            <div class="opacity-row">
+              <input id="overlayOpacity" type="range" min="0" max="1" step="0.05" value="0.68" />
+              <strong id="overlayOpacityValue">0.68</strong>
+            </div>
+          </label>
+          <div class="calibration-step-row">
+            <button id="panNorthButton" type="button" aria-label="Move map north">↑</button>
+            <button id="panWestButton" type="button" aria-label="Move map west">←</button>
+            <button id="panEastButton" type="button" aria-label="Move map east">→</button>
+            <button id="panSouthButton" type="button" aria-label="Move map south">↓</button>
+            <button id="zoomInButton" type="button" aria-label="Zoom in">+</button>
+            <button id="zoomOutButton" type="button" aria-label="Zoom out">−</button>
+          </div>
+          <div class="calibration-transform-row">
+            <button id="expandWidthButton" type="button">W+</button>
+            <button id="shrinkWidthButton" type="button">W−</button>
+            <button id="expandHeightButton" type="button">H+</button>
+            <button id="shrinkHeightButton" type="button">H−</button>
+            <button id="rotateClockwiseButton" type="button">R+</button>
+            <button id="rotateCounterClockwiseButton" type="button">R−</button>
+          </div>
+          <textarea
+            id="calibrationOutput"
+            readonly
+            spellcheck="false"
+            aria-label="Calibration output"
+          ></textarea>
+        </aside>
+      </section>
+
+      <footer class="timeline-strip">
+        <div class="timeline-main">
+          <div class="range-edge">
+            <span class="label">Start</span>
+            <strong id="rangeStartLabel">-</strong>
+          </div>
+          <div class="progress-panel">
+            <div class="progress-meta">
+              <span class="label">Current</span>
+              <strong id="rangeCurrentLabel">-</strong>
+            </div>
+            <div class="sequence-progress" aria-label="Sequence progress">
+              <div id="sequenceProgressFill" class="sequence-progress-fill"></div>
+            </div>
+          </div>
+          <div class="range-edge">
+            <span class="label">End</span>
+            <strong id="rangeEndLabel">-</strong>
+          </div>
+          <label class="speed-control" for="speedSlider">
+            <span class="label">Speed</span>
+            <div class="speed-row">
+              <input
+                id="speedSlider"
+                type="range"
+                min="0.25"
+                max="4"
+                step="0.25"
+                value="1"
+              />
+              <strong id="speedValue">1x</strong>
+            </div>
+          </label>
+        </div>
+        <div id="errorLine" role="status"></div>
+      </footer>
+    </main>
+
+    <script src="../node_modules/maplibre-gl/dist/maplibre-gl.js"></script>
+    <script src="./map-config.js"></script>
+    <script src="./renderer.js"></script>
+  </body>
+</html>

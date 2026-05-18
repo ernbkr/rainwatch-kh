@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "skills": {
+    "electron": {
+      "source": "teachingai/full-stack-skills",
+      "sourceType": "github",
+      "skillPath": "skills/electron-skills/electron/SKILL.md",
+      "computedHash": "9d82126e6c46dd626fc6b1d2e259687d1b64ad61900166b8fc5a3b661c243cf4"
+    },
+    "maplibre-mapbox-migration": {
+      "source": "maplibre/maplibre-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/maplibre-mapbox-migration/SKILL.md",
+      "computedHash": "e18326c4a5ee445f00c94138d14de974e92177f2ac5209912bb95c7b68c07af8"
+    },
+    "maplibre-pmtiles-patterns": {
+      "source": "maplibre/maplibre-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/maplibre-pmtiles-patterns/SKILL.md",
+      "computedHash": "75d810713b862308b7552fe62897128532fd01a47a1f8f88e75921597593932b"
+    },
+    "maplibre-tile-sources": {
+      "source": "maplibre/maplibre-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/maplibre-tile-sources/SKILL.md",
+      "computedHash": "3a54ecb94144f640b88f35a2b3d03e17090d4d07f4dc87a5cc26221885f39d31"
+    },
+    "shadcn": {
+      "source": "shadcn/ui",
+      "sourceType": "github",
+      "skillPath": "skills/shadcn/SKILL.md",
+      "computedHash": "80a6226e78f6d1fe464214ae0ef449d49d8ffaa3e7704f011e9b418c678ad4d1"
+    },
+    "vercel-react-best-practices": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/react-best-practices/SKILL.md",
+      "computedHash": "ca7b0c0c6e5f2750043f7f0cd72d16ac4e2abc48f9b5500d047a4b77a2506212"
+    }
+  }
+}
