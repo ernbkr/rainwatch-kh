@@ -1,4 +1,4 @@
-import { invoke, isTauri } from '@tauri-apps/api/core';
+import { invoke } from '@tauri-apps/api/core';
 import type { FetchFramesResult, RadarApi, RuntimeConfig } from './types';
 
 /**
@@ -11,7 +11,7 @@ function toError(caught: unknown): Error {
 }
 
 /** Radar API backed by the Rust commands registered in `src-tauri/src/lib.rs`. */
-const tauriRadar: RadarApi = {
+export const radar: RadarApi = {
   async fetchFrames(domain) {
     try {
       return await invoke<FetchFramesResult>('get_radar_frames', { domain });
@@ -33,10 +33,3 @@ const tauriRadar: RadarApi = {
     return invoke<void>('quit');
   }
 };
-
-/**
- * Radar IPC bridge. Uses the Tauri command API when running inside Tauri, and
- * falls back to the Electron preload bridge (`window.radar`) otherwise — so the
- * Electron build keeps working until it is removed.
- */
-export const radar: RadarApi = isTauri() ? tauriRadar : window.radar;

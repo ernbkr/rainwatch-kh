@@ -1,24 +1,20 @@
 {
   "name": "rainwatch-kh",
   "version": "0.1.0",
-  "description": "A minimal Linux desktop viewer for Cambodia Meteo radar animations.",
+  "description": "A minimal desktop viewer for Cambodia Meteo radar animations.",
   "productName": "Rainwatch KH",
-  "main": "src/main.js",
   "scripts": {
-    "dev": "concurrently -k -n vite,electron -c cyan,magenta \"vite\" \"wait-on tcp:127.0.0.1:5173 && RADAR_DEV_SERVER=http://localhost:5173 env -u ELECTRON_RUN_AS_NODE electron .\"",
+    "dev": "tauri dev",
     "dev:vite": "vite",
     "build": "vite build",
-    "start": "npm run build && env -u ELECTRON_RUN_AS_NODE electron .",
-    "start:calibrate": "npm run build && env -u ELECTRON_RUN_AS_NODE electron . --calibrate",
     "typecheck": "tsc -p renderer/tsconfig.json --noEmit",
     "test": "vitest run",
-    "package": "npm run build && electron-builder --linux",
     "tauri": "tauri"
   },
   "keywords": [
     "cambodia",
     "radar",
-    "electron",
+    "tauri",
     "weather"
   ],
   "author": "Erin Baker <erinobryanbaker@gmail.com>",
@@ -32,9 +28,6 @@
     "@types/react": "^18.3.28",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^4.7.0",
-    "concurrently": "^9.2.1",
-    "electron": "^30.5.1",
-    "electron-builder": "^26.8.1",
     "maplibre-gl": "^5.24.0",
     "pmtiles": "^4.4.1",
     "postcss": "^8.5.14",
@@ -44,7 +37,6 @@
     "react-dom": "^18.3.1",
     "typescript": "^6.0.3",
     "vite": "^6.4.2",
-    "vitest": "^3.2.4",
-    "wait-on": "^9.0.10"
+    "vitest": "^3.2.4"
   }
 }
