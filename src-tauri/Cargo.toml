@@ -1,0 +1,39 @@
+[package]
+name = "rainwatch-kh"
+version = "0.1.0"
+description = "Cambodia Meteo radar desktop viewer"
+authors = ["Erin Baker <erinobryanbaker@gmail.com>"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.77"
+
+# The library is shared between the desktop binary (main.rs) and any future
+# mobile entry point. main.rs links it via the `rlib`.
+[lib]
+name = "rainwatch_kh_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# HTTP egress lives entirely in Rust commands; rustls avoids a system OpenSSL
+# build dependency. Only cambodiameteo.com is ever contacted (see radar.rs).
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "gzip"] }
+base64 = "0.22"
+regex = "1"
+url = "2"
+chrono = "0.4"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

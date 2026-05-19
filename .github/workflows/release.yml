@@ -1,0 +1,89 @@
+name: release
+
+# Cuts a release when a version tag is pushed, e.g. `git tag v0.1.0 && git push origin v0.1.0`.
+on:
+  push:
+    tags:
+      - 'v*'
+
+# tauri-action needs write access to create the release and upload installers.
+permissions:
+  contents: write
+
+jobs:
+  release:
+    strategy:
+      # Build every OS even if one fails, so a single runner does not block the rest.
+      fail-fast: false
+      matrix:
+        include:
+          # ubuntu-22.04 keeps the AppImage's glibc requirement broadly compatible.
+          - platform: ubuntu-22.04
+            args: ''
+          - platform: windows-latest
+            args: ''
+          # Build a universal binary so the .dmg runs on Intel and Apple Silicon.
+          - platform: macos-latest
+            args: '--target universal-apple-darwin'
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libxdo-dev \
+            libssl-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          # macOS needs both targets to assemble the universal binary.
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build and publish release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # --- Code signing (optional) ---------------------------------------
+          # Builds are unsigned without these. To sign/notarize, add the
+          # secrets below and reference them here:
+          #   macOS:   APPLE_CERTIFICATE, APPLE_CERTIFICATE_PASSWORD,
+          #            APPLE_SIGNING_IDENTITY, APPLE_ID, APPLE_PASSWORD,
+          #            APPLE_TEAM_ID
+          #   Windows: set bundle.windows.certificateThumbprint in
+          #            src-tauri/tauri.conf.json
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Rainwatch KH ${{ github.ref_name }}'
+          releaseBody: 'Download the installer for your platform from the assets below.'
+          # Publish as a draft so the artifacts can be reviewed before going live.
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}

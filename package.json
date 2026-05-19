@@ -6,12 +6,14 @@
   "main": "src/main.js",
   "scripts": {
     "dev": "concurrently -k -n vite,electron -c cyan,magenta \"vite\" \"wait-on tcp:127.0.0.1:5173 && RADAR_DEV_SERVER=http://localhost:5173 env -u ELECTRON_RUN_AS_NODE electron .\"",
+    "dev:vite": "vite",
     "build": "vite build",
     "start": "npm run build && env -u ELECTRON_RUN_AS_NODE electron .",
     "start:calibrate": "npm run build && env -u ELECTRON_RUN_AS_NODE electron . --calibrate",
     "typecheck": "tsc -p renderer/tsconfig.json --noEmit",
     "test": "vitest run",
-    "package": "npm run build && electron-builder --linux"
+    "package": "npm run build && electron-builder --linux",
+    "tauri": "tauri"
   },
   "keywords": [
     "cambodia",
@@ -25,6 +27,8 @@
     "@mantine/core": "^8.3.18",
     "@mantine/hooks": "^8.3.18",
     "@tabler/icons-react": "^3.44.0",
+    "@tauri-apps/api": "^2.11.0",
+    "@tauri-apps/cli": "^2.11.2",
     "@types/react": "^18.3.28",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^4.7.0",
