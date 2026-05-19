@@ -1,5 +1,7 @@
 node_modules/
 dist/
+release/
+squashfs-root/
 coverage/
 .vite/
 *.log
