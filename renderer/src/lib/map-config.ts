@@ -54,7 +54,7 @@ export const mapConfig: RadarMapConfig = {
   },
   views: {
     PHN: {
-      center: [105.801068, 11.002651],
+      center: [104.9282, 11.5564],
       zoom: 9.44,
       coordinates: [
         [104.188, 12.248],
