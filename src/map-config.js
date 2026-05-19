@@ -1,5 +1,4 @@
 window.RADAR_MAP_CONFIG = Object.freeze({
-  styleUrl: 'https://tiles.openfreemap.org/styles/liberty',
   radarOpacity: 0.65,
   terrain: Object.freeze({
     sourceId: 'mapterhorn-terrain',
@@ -25,8 +24,8 @@ window.RADAR_MAP_CONFIG = Object.freeze({
   }),
   views: Object.freeze({
     PHN: Object.freeze({
-      center: [104.623076, 11.541039],
-      zoom: 8.75,
+      center: [105.801068, 11.002651],
+      zoom: 9.44,
       coordinates: Object.freeze([
         [104.188, 12.248],
         [105.657, 12.249],
@@ -35,23 +34,23 @@ window.RADAR_MAP_CONFIG = Object.freeze({
       ])
     }),
     '240KM': Object.freeze({
-      center: [105.743223, 11.177565],
-      zoom: 6.75,
+      center: [105.642707, 11.540633],
+      zoom: 7.88,
       coordinates: Object.freeze([
-        [102.721, 13.676],
-        [107.119, 13.676],
-        [107.119, 9.364],
-        [102.721, 9.364]
+        [102.69901, 13.676],
+        [107.14099, 13.676],
+        [107.14099, 9.364],
+        [102.69901, 9.364]
       ])
     }),
     CAMBODIA: Object.freeze({
-      center: [104.043894, 11.738617],
-      zoom: 6.72,
+      center: [105.486617, 12.349317],
+      zoom: 6.47,
       coordinates: Object.freeze([
-        [100.768147, 15.573022],
-        [109.103853, 15.573022],
-        [109.103853, 7.406978],
-        [100.768147, 7.406978]
+        [100.75, 15.559],
+        [109.11, 15.561],
+        [109.017, 7.465],
+        [100.778, 7.406978]
       ])
     })
   })

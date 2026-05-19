@@ -2,6 +2,7 @@ const BASE_FRAME_DELAY_MS = 250;
 const DEFAULT_DOMAIN = 'PHN';
 const MAP_CONFIG = window.RADAR_MAP_CONFIG;
 const TERRAIN = MAP_CONFIG?.terrain || null;
+const BASEMAPS = window.RadarBasemaps || null;
 
 const overflowButton = document.getElementById('overflowButton');
 const overflowMenu = document.getElementById('overflowMenu');
@@ -71,6 +72,8 @@ let activeOverlayUrl = '';
 let radarOpacity = MAP_CONFIG?.radarOpacity ?? 0.68;
 let is3DEnabled = false;
 let terrainExaggeration = TERRAIN?.exaggeration ?? 1.5;
+let selectedBasemap = BASEMAPS?.DEFAULT_BASEMAP_ID;
+let attributionControl = null;
 
 const AREA_LABELS = Object.freeze({
   PHN: '80 KM',
@@ -550,17 +553,46 @@ function initializeTerrainControls() {
   syncTerrainControls();
 }
 
+function basemapStyleInput(basemap) {
+  return typeof basemap.style === 'string' ? basemap.style : structuredClone(basemap.style);
+}
+
+function applyAttribution(basemap) {
+  if (!map) {
+    return;
+  }
+
+  if (attributionControl) {
+    map.removeControl(attributionControl);
+  }
+  attributionControl = new maplibregl.AttributionControl({
+    compact: true,
+    customAttribution: basemap?.attribution
+  });
+  map.addControl(attributionControl, 'bottom-right');
+}
+
+// Re-adds the radar overlay and terrain layers, which setStyle wipes. Runs on
+// the initial load and after every basemap switch (the 'style.load' event).
+function restoreMapLayers() {
+  addTerrainSourceAndHillshade();
+  addRadarOverlay();
+  applyTerrainState();
+  updateRadarOverlayImage(frames[currentFrameIndex]);
+}
+
 function initializeMap() {
-  if (!MAP_CONFIG?.styleUrl || typeof maplibregl === 'undefined') {
+  if (typeof maplibregl === 'undefined' || !BASEMAPS) {
     setMapError('Map context unavailable.');
     return;
   }
 
   try {
     const view = getSelectedMapView();
+    const basemap = BASEMAPS.resolveBasemap(selectedBasemap);
     map = new maplibregl.Map({
       container: mapPanel,
-      style: MAP_CONFIG.styleUrl,
+      style: basemapStyleInput(basemap),
       center: view.center,
       zoom: view.zoom,
       bearing: 0,
@@ -569,17 +601,15 @@ function initializeMap() {
       attributionControl: false
     });
 
-    map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
+    applyAttribution(basemap);
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
+
+    map.on('style.load', restoreMapLayers);
 
     map.on('load', () => {
       hasLoadedMapStyle = true;
       setMapError('');
-      addTerrainSourceAndHillshade();
-      addRadarOverlay();
-      applyTerrainState();
       syncMapView();
-      updateRadarOverlayImage(frames[currentFrameIndex]);
       syncCalibrationPanel();
       requestAnimationFrame(() => map.resize());
     });
@@ -605,10 +635,30 @@ function syncAreaMenu() {
   });
 }
 
+function syncBasemapMenu() {
+  overflowMenu.querySelectorAll('[data-basemap]').forEach((item) => {
+    item.setAttribute('aria-checked', String(item.dataset.basemap === selectedBasemap));
+  });
+}
+
+function switchBasemap(id) {
+  const basemap = BASEMAPS?.resolveBasemap(id);
+  if (!map || !basemap || basemap.id === selectedBasemap) {
+    return;
+  }
+
+  selectedBasemap = basemap.id;
+  syncBasemapMenu();
+  map.setTerrain(null);
+  map.setStyle(basemapStyleInput(basemap));
+  applyAttribution(basemap);
+}
+
 function openOverflowMenu() {
   overflowMenu.hidden = false;
   overflowButton.setAttribute('aria-expanded', 'true');
   syncAreaMenu();
+  syncBasemapMenu();
 }
 
 function closeOverflowMenu() {
@@ -915,6 +965,11 @@ overflowMenu.addEventListener('click', async (event) => {
     return;
   }
 
+  if (target.dataset.basemap) {
+    switchBasemap(target.dataset.basemap);
+    return;
+  }
+
   if (target.dataset.domain) {
     await switchArea(target.dataset.domain);
   }
@@ -1011,6 +1066,7 @@ registerTerrainProtocol();
 initializeMap();
 scheduleNextRefresh();
 syncAreaMenu();
+syncBasemapMenu();
 initializeRuntimeConfig();
 initializeTerrainControls();
 updateSpeedDisplay();
