@@ -3,6 +3,8 @@
 A minimal desktop app for viewing the latest Cambodia Meteo radar animation,
 built with [Tauri v2](https://v2.tauri.app/).
 
+![rainwatch-kh screenshot](rainwatch-kh.png)
+
 ## Develop
 
 ```bash
