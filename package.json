@@ -1,45 +1,42 @@
 {
-  "name": "cambodia-radar-desktop-viewer",
+  "name": "rainwatch-kh",
   "version": "0.1.0",
-  "description": "A minimal Linux desktop viewer for Cambodia Meteo radar animations.",
-  "main": "src/main.js",
+  "description": "A minimal desktop viewer for Cambodia Meteo radar animations.",
+  "productName": "Rainwatch KH",
   "scripts": {
-    "dev": "concurrently -k -n vite,electron -c cyan,magenta \"vite\" \"wait-on tcp:127.0.0.1:5173 && RADAR_DEV_SERVER=http://localhost:5173 env -u ELECTRON_RUN_AS_NODE electron .\"",
+    "dev": "tauri dev",
+    "dev:vite": "vite",
     "build": "vite build",
-    "start": "npm run build && env -u ELECTRON_RUN_AS_NODE electron .",
-    "start:calibrate": "npm run build && env -u ELECTRON_RUN_AS_NODE electron . --calibrate",
     "typecheck": "tsc -p renderer/tsconfig.json --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "tauri": "tauri"
   },
   "keywords": [
     "cambodia",
     "radar",
-    "electron",
+    "tauri",
     "weather"
   ],
-  "author": "",
+  "author": "Erin Baker <erinobryanbaker@gmail.com>",
   "license": "MIT",
   "devDependencies": {
-    "@types/react": "^18.3.28",
-    "@types/react-dom": "^18.3.7",
-    "@vitejs/plugin-react": "^4.7.0",
-    "concurrently": "^9.2.1",
-    "electron": "^30.5.1",
-    "postcss": "^8.5.14",
-    "postcss-preset-mantine": "^1.18.0",
-    "postcss-simple-vars": "^7.0.1",
-    "typescript": "^6.0.3",
-    "vite": "^6.4.2",
-    "vitest": "^3.2.4",
-    "wait-on": "^9.0.10"
-  },
-  "dependencies": {
     "@mantine/core": "^8.3.18",
     "@mantine/hooks": "^8.3.18",
     "@tabler/icons-react": "^3.44.0",
+    "@tauri-apps/api": "^2.11.0",
+    "@tauri-apps/cli": "^2.11.2",
+    "@types/react": "^18.3.28",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^4.7.0",
     "maplibre-gl": "^5.24.0",
     "pmtiles": "^4.4.1",
+    "postcss": "^8.5.14",
+    "postcss-preset-mantine": "^1.18.0",
+    "postcss-simple-vars": "^7.0.1",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "typescript": "^6.0.3",
+    "vite": "^6.4.2",
+    "vitest": "^3.2.4"
   }
 }

@@ -2,10 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; img-src 'self' data: blob: http: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; worker-src blob:; connect-src 'self' data: blob: http: https:;"
-    />
+    <!-- The Content-Security-Policy is configured in src-tauri/tauri.conf.json
+         and injected by Tauri at runtime (it also adds the IPC sources). -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cambodia Radar</title>
   </head>
