@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import basemaps from '../src/basemaps';
-
-const { BASEMAPS, DEFAULT_BASEMAP_ID, resolveBasemap } = basemaps;
+import { BASEMAPS, DEFAULT_BASEMAP_ID, resolveBasemap } from '../renderer/src/lib/basemaps';
 
 describe('BASEMAPS', () => {
   it('lists the four basemaps with unique ids, labels, and styles', () => {

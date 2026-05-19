@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import terrain from '../src/terrain';
-
-const { MAPTERHORN_BASE_URL, mapterhornTileName, mapterhornTileUrl } = terrain;
+import {
+  MAPTERHORN_BASE_URL,
+  mapterhornTileName,
+  mapterhornTileUrl
+} from '../renderer/src/lib/terrain';
 
 describe('mapterhornTileName', () => {
   it('routes zoom 12 and below to the planet archive', () => {

@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import scheduler from '../src/scheduler';
-
-const { getNextRefreshDelayMs, getNextRefreshTime } = scheduler;
+import { getNextRefreshDelayMs, getNextRefreshTime } from '../renderer/src/lib/scheduler';
 
 function localDate(hour, minute, second = 0) {
   return new Date(2026, 4, 18, hour, minute, second, 0);

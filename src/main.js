@@ -1,8 +1,17 @@
-const { app, BrowserWindow, ipcMain, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, net, protocol } = require('electron');
 const path = require('node:path');
+const { pathToFileURL } = require('node:url');
 const { assertValidDomain } = require('./domains');
 const { isCalibrationEnabled } = require('./flags');
 const { parseRadarFrames } = require('./parser');
+
+const DIST_DIR = path.join(__dirname, '..', 'dist');
+
+// A standard, secure scheme so the production bundle's ES module scripts load
+// (Chromium blocks `<script type="module">` served over `file://`).
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'app', privileges: { standard: true, secure: true, supportFetchAPI: true } }
+]);
 
 const SOURCE_URL = 'http://cambodiameteo.com/slideshow?menu=117&lang=en';
 const SOURCE_ORIGIN = 'http://cambodiameteo.com';
@@ -32,7 +41,14 @@ function createWindow() {
   });
 
   mainWindow.setMenuBarVisibility(false);
-  mainWindow.loadFile(path.join(__dirname, 'index.html'));
+
+  const devServerUrl = process.env.RADAR_DEV_SERVER;
+  if (devServerUrl) {
+    mainWindow.loadURL(devServerUrl);
+    mainWindow.webContents.openDevTools({ mode: 'detach' });
+  } else {
+    mainWindow.loadURL('app://local/index.html');
+  }
 }
 
 async function fetchRadarFrames(domain) {
@@ -120,6 +136,18 @@ async function fetchRadarImageDataUrl(imageUrl) {
 
 app.whenReady().then(() => {
   Menu.setApplicationMenu(null);
+
+  // Serve the built renderer bundle from `dist/` over the app:// scheme.
+  protocol.handle('app', (request) => {
+    const { pathname } = new URL(request.url);
+    const relativePath = pathname === '/' ? 'index.html' : decodeURIComponent(pathname);
+    const filePath = path.join(DIST_DIR, relativePath);
+    if (!filePath.startsWith(DIST_DIR)) {
+      return new Response('Not found', { status: 404 });
+    }
+    return net.fetch(pathToFileURL(filePath).toString());
+  });
+
   ipcMain.handle('radar:fetchFrames', (_event, domain) => fetchRadarFrames(domain));
   ipcMain.handle('radar:fetchImageDataUrl', (_event, imageUrl) => fetchRadarImageDataUrl(imageUrl));
   ipcMain.handle('app:getRuntimeConfig', () => RUNTIME_CONFIG);

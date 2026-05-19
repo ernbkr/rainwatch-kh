@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 function getContentSecurityPolicy() {
-  const html = readFileSync(resolve(process.cwd(), 'src/index.html'), 'utf8');
+  const html = readFileSync(resolve(process.cwd(), 'renderer/index.html'), 'utf8');
   const match = html.match(/http-equiv="Content-Security-Policy"\s+content="([^"]+)"/);
   return match?.[1] || '';
 }

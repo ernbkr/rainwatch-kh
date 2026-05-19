@@ -1,0 +1,149 @@
+import { useCallback, useState } from 'react';
+import { AppShell, Stack } from '@mantine/core';
+import { CalibrationPanel } from './components/CalibrationPanel';
+import { EmptyState } from './components/EmptyState';
+import { MapView } from './components/MapView';
+import { SliderControl } from './components/SliderControl';
+import { StatusBar } from './components/StatusBar';
+import { Timeline } from './components/Timeline';
+import { usePlayback } from './hooks/usePlayback';
+import { useRadarFrames } from './hooks/useRadarFrames';
+import { useRuntimeConfig } from './hooks/useRuntimeConfig';
+import { DEFAULT_BASEMAP_ID } from './lib/basemaps';
+import { DEFAULT_DOMAIN } from './lib/domains';
+import { cloneViews, mapConfig } from './lib/map-config';
+import { radar } from './lib/radar';
+import type { Coordinate, DomainId, MapView as MapViewModel, QuadCoordinates } from './lib/types';
+
+const HEADER_HEIGHT = 70;
+const FOOTER_HEIGHT = 100;
+const MAP_AREA_HEIGHT =
+  `calc(100dvh - var(--app-shell-header-height, ${HEADER_HEIGHT}px)` +
+  ` - var(--app-shell-footer-height, ${FOOTER_HEIGHT}px))`;
+
+export function App() {
+  const { calibrationEnabled } = useRuntimeConfig();
+
+  const [domain, setDomain] = useState<DomainId>(DEFAULT_DOMAIN);
+  const [basemapId, setBasemapId] = useState<string>(DEFAULT_BASEMAP_ID);
+  const [is3D, setIs3D] = useState(false);
+  const [exaggeration, setExaggeration] = useState(mapConfig.terrain.exaggeration);
+  const [opacity, setOpacity] = useState(mapConfig.radarOpacity);
+  const [speed, setSpeed] = useState(1);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [views, setViews] = useState<Record<DomainId, MapViewModel>>(cloneViews);
+
+  const { frames, status, error, lastChecked, nextRefresh, refreshNow } = useRadarFrames(domain);
+  const [frameIndex, setFrameIndex] = usePlayback(frames, speed, isPlaying);
+  const frame = frames[frameIndex];
+  const view = views[domain];
+
+  const handleCameraChange = useCallback(
+    (center: Coordinate, zoom: number) => {
+      // Preserve the coordinates array reference so the overlay-quad effect
+      // does not re-fire on camera moves.
+      setViews((prev) => ({ ...prev, [domain]: { ...prev[domain], center, zoom } }));
+    },
+    [domain]
+  );
+
+  const handleCoordinatesChange = useCallback(
+    (coordinates: QuadCoordinates) => {
+      setViews((prev) => ({ ...prev, [domain]: { ...prev[domain], coordinates } }));
+    },
+    [domain]
+  );
+
+  return (
+    <AppShell header={{ height: HEADER_HEIGHT }} footer={{ height: FOOTER_HEIGHT }} padding={0}>
+      <AppShell.Header>
+        <StatusBar
+          latestLabel={frames.at(-1)?.label ?? '-'}
+          currentLabel={frame?.label ?? '-'}
+          lastChecked={lastChecked}
+          nextRefresh={nextRefresh}
+          domain={domain}
+          onDomainChange={setDomain}
+          basemapId={basemapId}
+          onBasemapChange={setBasemapId}
+          is3D={is3D}
+          onToggle3D={() => setIs3D((value) => !value)}
+          onRefresh={refreshNow}
+          onQuit={() => void radar.quit()}
+        />
+      </AppShell.Header>
+
+      <AppShell.Main>
+        <div style={{ position: 'relative', width: '100%', height: MAP_AREA_HEIGHT }}>
+          <MapView
+            basemapId={basemapId}
+            domain={domain}
+            view={view}
+            is3D={is3D}
+            exaggeration={exaggeration}
+            opacity={opacity}
+            frame={frame}
+            onCameraChange={calibrationEnabled ? handleCameraChange : undefined}
+          />
+          {!frame && <EmptyState message={error || status} loading={!error} />}
+          <Stack
+            gap="xs"
+            style={{ position: 'absolute', left: 12, bottom: 12, zIndex: 5, width: 240 }}
+          >
+            {is3D && (
+              <SliderControl
+                label="Terrain"
+                min={mapConfig.terrain.minExaggeration}
+                max={mapConfig.terrain.maxExaggeration}
+                step={0.1}
+                value={exaggeration}
+                onChange={setExaggeration}
+                formatLabel={(value) => `${value.toFixed(1)}×`}
+              />
+            )}
+            <SliderControl
+              label="Speed"
+              min={0.25}
+              max={4}
+              step={0.25}
+              value={speed}
+              onChange={setSpeed}
+              formatLabel={(value) => `${value}×`}
+            />
+            <SliderControl
+              label="Opacity"
+              min={0}
+              max={1}
+              step={0.05}
+              value={opacity}
+              onChange={setOpacity}
+              formatLabel={(value) => value.toFixed(2)}
+            />
+          </Stack>
+          {calibrationEnabled && (
+            <CalibrationPanel
+              domain={domain}
+              view={view}
+              views={views}
+              opacity={opacity}
+              onOpacityChange={setOpacity}
+              onCoordinatesChange={handleCoordinatesChange}
+            />
+          )}
+        </div>
+      </AppShell.Main>
+
+      <AppShell.Footer>
+        <Timeline
+          frames={frames}
+          currentIndex={frameIndex}
+          isPlaying={isPlaying}
+          onTogglePlay={() => setIsPlaying((value) => !value)}
+          onScrub={setFrameIndex}
+          onScrubStart={() => setIsPlaying(false)}
+          error={error}
+        />
+      </AppShell.Footer>
+    </AppShell>
+  );
+}

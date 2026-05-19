@@ -1,6 +1,8 @@
-const REFRESH_MINUTES = Object.freeze([3, 18, 33, 48]);
+/** Minutes past each hour at which Cambodia Meteo publishes new radar frames. */
+export const REFRESH_MINUTES = [3, 18, 33, 48] as const;
 
-function getNextRefreshTime(now = new Date()) {
+/** Returns the next scheduled refresh time at or after `now`. */
+export function getNextRefreshTime(now: Date = new Date()): Date {
   const next = new Date(now);
   next.setSeconds(0, 0);
 
@@ -17,12 +19,7 @@ function getNextRefreshTime(now = new Date()) {
   return next;
 }
 
-function getNextRefreshDelayMs(now = new Date()) {
+/** Milliseconds from `now` until the next scheduled refresh. */
+export function getNextRefreshDelayMs(now: Date = new Date()): number {
   return Math.max(0, getNextRefreshTime(now).getTime() - now.getTime());
 }
-
-module.exports = {
-  REFRESH_MINUTES,
-  getNextRefreshTime,
-  getNextRefreshDelayMs
-};
