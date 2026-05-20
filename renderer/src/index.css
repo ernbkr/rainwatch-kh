@@ -8,3 +8,26 @@ body {
   margin: 0;
   overflow: hidden;
 }
+
+/* HoverControl — matches MapLibre's 29x29 control button chrome. Icon
+ * stroke is fixed at #333 to match the bundled MapLibre control icons
+ * (zoom-in/-out/compass), which bake `fill='#333'` into their SVGs and
+ * therefore do not follow `--mantine-color-text` in dark mode. The
+ * active state inverts the chrome so it reads as "pressed" rather than
+ * introducing a brand colour that doesn't appear on the sibling control.
+ *
+ * Selectors are scoped with `.maplibregl-ctrl-group button` so they beat
+ * MapLibre's bundled `.maplibregl-ctrl-group button { background-color:
+ * transparent }` (which would otherwise hide the active background). */
+.maplibregl-ctrl-group button.maplibregl-ctrl-hover {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+}
+
+.maplibregl-ctrl-group button.maplibregl-ctrl-hover-active,
+.maplibregl-ctrl-group button.maplibregl-ctrl-hover-active:hover {
+  background-color: #333;
+  color: #fff;
+}

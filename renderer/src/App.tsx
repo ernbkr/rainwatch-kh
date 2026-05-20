@@ -6,6 +6,7 @@ import { MapView } from './components/MapView';
 import { SliderControl } from './components/SliderControl';
 import { StatusBar } from './components/StatusBar';
 import { Timeline } from './components/Timeline';
+import { useIdleTimer } from './hooks/useIdleTimer';
 import { usePlayback } from './hooks/usePlayback';
 import { useRadarFrames } from './hooks/useRadarFrames';
 import { useRuntimeConfig } from './hooks/useRuntimeConfig';
@@ -17,6 +18,8 @@ import type { Coordinate, DomainId, MapView as MapViewModel, QuadCoordinates } f
 
 const HEADER_HEIGHT = 70;
 const FOOTER_HEIGHT = 100;
+/** Inactivity before the map auto-enters hover mode. */
+const HOVER_IDLE_MS = 10_000;
 const MAP_AREA_HEIGHT =
   `calc(100dvh - var(--app-shell-header-height, ${HEADER_HEIGHT}px)` +
   ` - var(--app-shell-footer-height, ${FOOTER_HEIGHT}px))`;
@@ -32,6 +35,43 @@ export function App() {
   const [speed, setSpeed] = useState(1);
   const [isPlaying, setIsPlaying] = useState(true);
   const [views, setViews] = useState<Record<DomainId, MapViewModel>>(cloneViews);
+  const [isHovering, setIsHovering] = useState(false);
+
+  // Idle timer pauses while hovering and reschedules whenever the user
+  // interacts with the map (via `handleUserInteraction` below).
+  const { reset: resetIdleTimer } = useIdleTimer({
+    delayMs: HOVER_IDLE_MS,
+    enabled: !isHovering,
+    onIdle: () => setIsHovering(true)
+  });
+
+  // Any user-initiated map event: stop hover (if active) and reset the timer.
+  const handleUserInteraction = useCallback(() => {
+    setIsHovering((current) => {
+      if (current) return false;
+      return current;
+    });
+    resetIdleTimer();
+  }, [resetIdleTimer]);
+
+  const handleToggleHover = useCallback(() => {
+    setIsHovering((current) => !current);
+    // Reset the timer either way: when starting hover the timer is paused
+    // (no-op); when stopping it, this restarts the countdown from zero.
+    resetIdleTimer();
+  }, [resetIdleTimer]);
+
+  // Switching domains always exits hover so the new fit-to-bounds is shown
+  // from a normal upright view; the rotation cleanup runs alongside the
+  // domain effect on the same commit.
+  const handleDomainChange = useCallback(
+    (next: DomainId) => {
+      setDomain(next);
+      setIsHovering(false);
+      resetIdleTimer();
+    },
+    [resetIdleTimer]
+  );
 
   const { frames, status, error, lastChecked, nextRefresh, refreshNow } = useRadarFrames(domain);
   const [frameIndex, setFrameIndex] = usePlayback(frames, speed, isPlaying);
@@ -63,7 +103,7 @@ export function App() {
           lastChecked={lastChecked}
           nextRefresh={nextRefresh}
           domain={domain}
-          onDomainChange={setDomain}
+          onDomainChange={handleDomainChange}
           basemapId={basemapId}
           onBasemapChange={setBasemapId}
           is3D={is3D}
@@ -84,6 +124,9 @@ export function App() {
             opacity={opacity}
             frame={frame}
             onCameraChange={calibrationEnabled ? handleCameraChange : undefined}
+            isHovering={isHovering}
+            onToggleHover={handleToggleHover}
+            onUserInteraction={handleUserInteraction}
           />
           {!frame && <EmptyState message={error || status} loading={!error} />}
           <Stack
