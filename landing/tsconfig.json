@@ -1,0 +1,4 @@
+{
+  "extends": "../renderer/tsconfig.json",
+  "include": ["src", "../renderer/src/theme.ts"]
+}

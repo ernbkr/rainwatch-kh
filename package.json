@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "tauri dev",
     "dev:vite": "vite",
+    "dev:landing": "vite --config vite.config.landing.ts",
     "build": "vite build",
+    "build:landing": "vite build --config vite.config.landing.ts",
     "typecheck": "tsc -p renderer/tsconfig.json --noEmit",
     "test": "vitest run",
     "tauri": "tauri"
