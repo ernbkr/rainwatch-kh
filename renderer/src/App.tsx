@@ -10,6 +10,8 @@ import { useIdleTimer } from './hooks/useIdleTimer';
 import { usePlayback } from './hooks/usePlayback';
 import { useRadarFrames } from './hooks/useRadarFrames';
 import { useRuntimeConfig } from './hooks/useRuntimeConfig';
+import { useForecastGrid } from './hooks/useForecastGrid';
+import { useProvincialCapitals } from './hooks/useProvincialCapitals';
 import { DEFAULT_BASEMAP_ID } from './lib/basemaps';
 import { DEFAULT_DOMAIN } from './lib/domains';
 import { cloneViews, mapConfig } from './lib/map-config';
@@ -36,12 +38,22 @@ export function App() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [views, setViews] = useState<Record<DomainId, MapViewModel>>(cloneViews);
   const [isHovering, setIsHovering] = useState(false);
+  // Per PRD the new Open-Meteo capitals layer defaults off (the old
+  // cambodiameteo stations layer defaulted on).
+  const [provincialCapitalsVisible, setProvincialCapitalsVisible] = useState(false);
+  // Per PRD the forecast-grid layer also defaults off.
+  const [forecastGridVisible, setForecastGridVisible] = useState(false);
+  // Gates only the *auto*-trigger: the on-map HoverControl button still
+  // toggles hover mode manually regardless of this setting. Default off so
+  // first-time users don't see the map suddenly spin after 10s of inactivity.
+  const [autoHoverEnabled, setAutoHoverEnabled] = useState(false);
 
   // Idle timer pauses while hovering and reschedules whenever the user
-  // interacts with the map (via `handleUserInteraction` below).
+  // interacts with the map (via `handleUserInteraction` below). When
+  // `autoHoverEnabled` is false, the timer never fires.
   const { reset: resetIdleTimer } = useIdleTimer({
     delayMs: HOVER_IDLE_MS,
-    enabled: !isHovering,
+    enabled: autoHoverEnabled && !isHovering,
     onIdle: () => setIsHovering(true)
   });
 
@@ -74,6 +86,22 @@ export function App() {
   );
 
   const { frames, status, error, lastChecked, nextRefresh, refreshNow } = useRadarFrames(domain);
+  const {
+    data: provincialCapitalsData,
+    status: provincialCapitalsStatus,
+    error: provincialCapitalsError,
+    lastUpdated: provincialCapitalsUpdatedAt,
+    refresh: refreshProvincialCapitals
+  } = useProvincialCapitals();
+  const {
+    data: forecastGridData,
+    status: forecastGridStatus,
+    error: forecastGridError,
+    lastUpdated: forecastGridUpdatedAt,
+    window: forecastGridWindow,
+    setWindow: setForecastGridWindow,
+    refresh: refreshForecastGrid
+  } = useForecastGrid();
   const [frameIndex, setFrameIndex] = usePlayback(frames, speed, isPlaying);
   const frame = frames[frameIndex];
   const view = views[domain];
@@ -110,6 +138,22 @@ export function App() {
           onToggle3D={() => setIs3D((value) => !value)}
           onRefresh={refreshNow}
           onQuit={() => void radar.quit()}
+          provincialCapitalsVisible={provincialCapitalsVisible}
+          onToggleProvincialCapitals={() => setProvincialCapitalsVisible((value) => !value)}
+          onRefreshProvincialCapitals={refreshProvincialCapitals}
+          provincialCapitalsRefreshing={provincialCapitalsStatus === 'loading'}
+          provincialCapitalsError={provincialCapitalsError}
+          provincialCapitalsUpdatedAt={provincialCapitalsUpdatedAt}
+          forecastGridVisible={forecastGridVisible}
+          onToggleForecastGrid={() => setForecastGridVisible((value) => !value)}
+          onRefreshForecastGrid={refreshForecastGrid}
+          forecastGridRefreshing={forecastGridStatus === 'loading'}
+          forecastGridError={forecastGridError}
+          forecastGridUpdatedAt={forecastGridUpdatedAt}
+          forecastGridWindow={forecastGridWindow}
+          onForecastGridWindowChange={setForecastGridWindow}
+          autoHoverEnabled={autoHoverEnabled}
+          onToggleAutoHover={() => setAutoHoverEnabled((value) => !value)}
         />
       </AppShell.Header>
 
@@ -127,6 +171,14 @@ export function App() {
             isHovering={isHovering}
             onToggleHover={handleToggleHover}
             onUserInteraction={handleUserInteraction}
+            provincialCapitals={{
+              data: provincialCapitalsData,
+              visible: provincialCapitalsVisible
+            }}
+            forecastGrid={{
+              data: forecastGridData,
+              visible: forecastGridVisible
+            }}
           />
           {!frame && <EmptyState message={error || status} loading={!error} />}
           <Stack

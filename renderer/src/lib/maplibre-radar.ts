@@ -17,9 +17,10 @@ export const HILLSHADE_LAYER_ID = 'mapterhorn-hillshade';
 export const TRANSPARENT_IMAGE_URL =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mP8z8BQDwAFgwJ/lmXbWQAAAABJRU5ErkJggg==';
 
-/** Credit for the radar data source — always present in the AttributionControl. */
+/** Credit for the MOWRAM data sources (radar + weather stations) — always
+ * present in the AttributionControl. */
 export const MOWRAM_ATTRIBUTION =
-  'Radar data © <a href="http://cambodiameteo.com/" target="_blank" rel="noopener">MOWRAM</a>';
+  'Radar & weather data © <a href="http://cambodiameteo.com/" target="_blank" rel="noopener">MOWRAM</a>';
 
 const terrain = mapConfig.terrain;
 let protocolRegistered = false;

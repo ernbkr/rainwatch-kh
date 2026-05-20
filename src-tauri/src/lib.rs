@@ -4,7 +4,11 @@
 //! playback, scheduling, and UI logic; Rust owns source fetching, radar-frame
 //! parsing, and HTTP egress (see `radar.rs`).
 
+mod cambodia_grid;
 mod domains;
+mod forecast_grid;
+mod http;
+mod provincial_capitals;
 mod radar;
 
 use serde::Serialize;
@@ -44,6 +48,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             radar::get_radar_frames,
             radar::get_radar_image,
+            provincial_capitals::get_provincial_capitals,
+            forecast_grid::get_forecast_grid,
             get_runtime_config,
             quit,
         ])

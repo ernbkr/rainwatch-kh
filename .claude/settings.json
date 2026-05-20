@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s \"https://data.mef.gov.kh/api/v1/realtime-api/weather?province=Kratie\")",
+      "Bash(curl -s \"https://data.mef.gov.kh/api/v1/realtime-api/weather?province=Siemreap\")",
+      "Bash(curl -s \"https://data.mef.gov.kh/api/v1/realtime-api/weather?province=Siem%20Reap\")",
+      "Bash(curl -s \"https://data.mef.gov.kh/api/v1/realtime-api/weather\")",
+      "Bash(curl -s \"https://data.mef.gov.kh/api/v1/realtime-api/weather?province=phnom%20penh\")",
+      "Bash(curl -s \"https://data.mef.gov.kh/api/v1/realtime-api/weather?province=BATTAMBANG\")",
+      "Bash(curl -s -H \"X-Custom: test\" \"https://data.mef.gov.kh/api/v1/realtime-api/weather?province=Phnom%20Penh\")",
+      "Bash(curl -s \"https://data.mef.gov.kh/api/v1/realtime-api/weather?province=Kep\")",
+      "Bash(curl -s \"https://data.mef.gov.kh/api/v1/realtime-api/weather?province=Otdar%20Meanchey\")",
+      "Bash(curl -i -s \"https://data.mef.gov.kh/api/v1/realtime-api/weather?province=Phnom%20Penh\")",
+      "WebSearch"
+    ]
+  }
+}
