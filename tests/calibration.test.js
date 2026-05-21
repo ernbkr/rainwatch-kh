@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildCalibrationSnippet,
+  getCoordinateBounds,
   getCoordinateCenter,
   nudgeCoordinates,
   rotateCoordinates,
@@ -17,6 +18,28 @@ const SQUARE = [
 describe('getCoordinateCenter', () => {
   it('returns the centroid of the quad', () => {
     expect(getCoordinateCenter(SQUARE)).toEqual([1, 1]);
+  });
+});
+
+describe('getCoordinateBounds', () => {
+  it('returns [[minLng, minLat], [maxLng, maxLat]] for an axis-aligned square', () => {
+    expect(getCoordinateBounds(SQUARE)).toEqual([
+      [0, 0],
+      [2, 2]
+    ]);
+  });
+
+  it('takes the extremes across all four corners of a skewed quad', () => {
+    const skewed = [
+      [1, 5],
+      [4, 6],
+      [3, 1],
+      [0, 2]
+    ];
+    expect(getCoordinateBounds(skewed)).toEqual([
+      [0, 1],
+      [4, 6]
+    ]);
   });
 });
 

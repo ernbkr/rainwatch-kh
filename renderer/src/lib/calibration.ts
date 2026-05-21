@@ -9,6 +9,18 @@ export function getCoordinateCenter(coordinates: QuadCoordinates): Coordinate {
   return [total[0] / coordinates.length, total[1] / coordinates.length];
 }
 
+/** Axis-aligned bounding box `[[minLng, minLat], [maxLng, maxLat]]` of a quad. */
+export function getCoordinateBounds(
+  coordinates: QuadCoordinates
+): [Coordinate, Coordinate] {
+  const lngs = coordinates.map(([lng]) => lng);
+  const lats = coordinates.map(([, lat]) => lat);
+  return [
+    [Math.min(...lngs), Math.min(...lats)],
+    [Math.max(...lngs), Math.max(...lats)]
+  ];
+}
+
 /** Translates every corner by (deltaLng, deltaLat). */
 export function nudgeCoordinates(
   coordinates: QuadCoordinates,

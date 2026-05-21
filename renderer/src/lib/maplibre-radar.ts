@@ -17,6 +17,11 @@ export const HILLSHADE_LAYER_ID = 'mapterhorn-hillshade';
 export const TRANSPARENT_IMAGE_URL =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mP8z8BQDwAFgwJ/lmXbWQAAAABJRU5ErkJggg==';
 
+/** Credit for the MOWRAM data sources (radar + weather stations) — always
+ * present in the AttributionControl. */
+export const MOWRAM_ATTRIBUTION =
+  'Radar & weather data © <a href="http://cambodiameteo.com/" target="_blank" rel="noopener">MOWRAM</a>';
+
 const terrain = mapConfig.terrain;
 let protocolRegistered = false;
 
@@ -145,9 +150,15 @@ export function applyAttributionControl(
   if (previous) {
     map.removeControl(previous);
   }
+  // MOWRAM credit is always present; the basemap's own attribution (if any)
+  // is appended. MapLibre joins the array with its built-in ` | ` separator
+  // and dedupes against the style's source attribution.
+  const customAttribution = basemap.attribution
+    ? [MOWRAM_ATTRIBUTION, basemap.attribution]
+    : [MOWRAM_ATTRIBUTION];
   const control = new maplibregl.AttributionControl({
     compact: true,
-    customAttribution: basemap.attribution
+    customAttribution
   });
   map.addControl(control, 'bottom-right');
   return control;

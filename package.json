@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "tauri dev",
     "dev:vite": "vite",
+    "dev:landing": "vite --config vite.config.landing.ts",
     "build": "vite build",
+    "build:landing": "vite build --config vite.config.landing.ts",
+    "build:grid": "node scripts/build-grid.mjs",
     "typecheck": "tsc -p renderer/tsconfig.json --noEmit",
     "test": "vitest run",
     "tauri": "tauri"
@@ -25,6 +28,9 @@
     "@tabler/icons-react": "^3.44.0",
     "@tauri-apps/api": "^2.11.0",
     "@tauri-apps/cli": "^2.11.2",
+    "@turf/boolean-point-in-polygon": "^7.3.5",
+    "@turf/buffer": "^7.3.5",
+    "@turf/helpers": "^7.3.5",
     "@types/react": "^18.3.28",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^4.7.0",

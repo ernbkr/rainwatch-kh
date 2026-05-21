@@ -8,3 +8,193 @@ body {
   margin: 0;
   overflow: hidden;
 }
+
+/* HoverControl — matches MapLibre's 29x29 control button chrome. Icon
+ * stroke is fixed at #333 to match the bundled MapLibre control icons
+ * (zoom-in/-out/compass), which bake `fill='#333'` into their SVGs and
+ * therefore do not follow `--mantine-color-text` in dark mode. The
+ * active state inverts the chrome so it reads as "pressed" rather than
+ * introducing a brand colour that doesn't appear on the sibling control.
+ *
+ * Selectors are scoped with `.maplibregl-ctrl-group button` so they beat
+ * MapLibre's bundled `.maplibregl-ctrl-group button { background-color:
+ * transparent }` (which would otherwise hide the active background). */
+.maplibregl-ctrl-group button.maplibregl-ctrl-hover {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+}
+
+.maplibregl-ctrl-group button.maplibregl-ctrl-hover-active,
+.maplibregl-ctrl-group button.maplibregl-ctrl-hover-active:hover {
+  background-color: #333;
+  color: #fff;
+}
+
+/* Map-popup base styling. All on-map popups (capitals layer today; forecast
+ * grid in a follow-up) inherit this body chrome. Inner content classes are
+ * scoped below so they only apply inside `.maplibregl-popup-content`. */
+.maplibregl-popup-content {
+  padding: 12px 14px 14px;
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  color: #1a1a1a;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* Capital-name header — composed in `useRadarMap` from `feature.properties.name`. */
+.maplibregl-popup-content .capitalName {
+  font-size: 15px;
+  font-weight: 700;
+  color: #000;
+  letter-spacing: 0.02em;
+  margin-bottom: 2px;
+}
+
+.maplibregl-popup-content .capitalProvince {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+/* The icon + temperature row: large icon on the left, temperature and
+ * condition text on the right. */
+.maplibregl-popup-content .capitalCurrent {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.maplibregl-popup-content .capitalIcon {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  display: block;
+}
+
+.maplibregl-popup-content .capitalTemp {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.maplibregl-popup-content .capitalTempValue {
+  font-size: 22px;
+  font-weight: 700;
+  color: #000;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.maplibregl-popup-content .capitalCondition {
+  font-size: 12px;
+  color: #555;
+  margin-top: 1px;
+}
+
+/* Readings grid: 2-column key/value list. dt is the label, dd is the value. */
+.maplibregl-popup-content .capitalReadings {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 14px;
+  row-gap: 2px;
+  margin: 0 0 8px;
+  padding: 0;
+}
+
+.maplibregl-popup-content .capitalReadings dt {
+  color: #555;
+  font-size: 12px;
+}
+
+.maplibregl-popup-content .capitalReadings dd {
+  color: #111;
+  font-weight: 600;
+  text-align: right;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.maplibregl-popup-content .capitalObserved {
+  font-size: 11px;
+  color: #888;
+  border-top: 1px solid #e5e5e5;
+  padding-top: 6px;
+}
+
+/* Forecast-grid popup. Smaller surface than the capital popup — the grid
+ * shows a window summary, not a full point-of-interest readout. */
+.maplibregl-popup-content .gridTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #000;
+  letter-spacing: 0.02em;
+}
+
+.maplibregl-popup-content .gridRange {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.maplibregl-popup-content .gridCurrent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.maplibregl-popup-content .gridIcon {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  display: block;
+}
+
+.maplibregl-popup-content .gridCondition {
+  font-size: 13px;
+  color: #111;
+  font-weight: 600;
+}
+
+.maplibregl-popup-content .gridReadings {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 14px;
+  row-gap: 2px;
+  margin: 0;
+  padding: 0;
+}
+
+.maplibregl-popup-content .gridReadings dt {
+  color: #555;
+  font-size: 12px;
+}
+
+.maplibregl-popup-content .gridReadings dd {
+  color: #111;
+  font-weight: 600;
+  text-align: right;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* MapLibre's default close button is small and faint; lift it for the pinned
+ * popup so the affordance to dismiss is obvious. */
+.maplibregl-popup-content .maplibregl-popup-close-button {
+  font-size: 18px;
+  line-height: 1;
+  padding: 2px 6px;
+  color: #555;
+}
+.maplibregl-popup-content .maplibregl-popup-close-button:hover {
+  color: #000;
+  background: transparent;
+}

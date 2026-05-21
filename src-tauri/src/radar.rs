@@ -1,15 +1,14 @@
 //! Source-page fetching and radar-frame parsing.
 //!
 //! Ported from the Electron `src/parser.js` and the fetch helpers in
-//! `src/main.js`. Every HTTP request the app makes originates here and is
-//! restricted to `http://cambodiameteo.com`: the slideshow domain is checked
-//! against the allow-list in `domains.rs`, and image URLs against a fixed
-//! origin plus the `/data/animation/radar/` path prefix. No caller-supplied
-//! URL is ever fetched verbatim.
+//! `src/main.js`. Every HTTP request this module makes goes through the
+//! shared client in `http.rs` and is restricted to `http://cambodiameteo.com`:
+//! the slideshow domain is checked against the allow-list in `domains.rs`,
+//! and image URLs against a fixed origin plus the `/data/animation/radar/`
+//! path prefix. No caller-supplied URL is ever fetched verbatim.
 
 use std::collections::{BTreeMap, HashMap};
 use std::sync::LazyLock;
-use std::time::Duration;
 
 use base64::Engine;
 use regex::Regex;
@@ -17,13 +16,11 @@ use serde::Serialize;
 use url::Url;
 
 use crate::domains::assert_valid_domain;
+use crate::http::{describe_fetch_error, HTTP_CLIENT};
 
 const SOURCE_URL: &str = "http://cambodiameteo.com/slideshow?menu=117&lang=en";
 const SOURCE_ORIGIN: &str = "http://cambodiameteo.com";
 const RADAR_IMAGE_PATH_PREFIX: &str = "/data/animation/radar/";
-const FETCH_TIMEOUT: Duration = Duration::from_secs(15);
-const USER_AGENT: &str =
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) CambodiaRadar/0.1 Safari/537.36";
 
 /// Matches `theImagesComplete[<n>] = "<path>";` for either quote style.
 /// Group 1 is the index; group 2/3 the double/single-quoted body.
@@ -36,16 +33,6 @@ static IMAGE_PATTERN: LazyLock<Regex> = LazyLock::new(|| {
 static LABEL_PATTERN: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r#"ImagesText\[(\d+)\]\s*=\s*(?:"((?:\\.|[^"])*)"|'((?:\\.|[^'])*)')\s*;"#)
         .expect("label pattern is a valid regex")
-});
-
-/// Shared HTTP client. Built once with a fixed User-Agent and request timeout.
-static HTTP_CLIENT: LazyLock<reqwest::Client> = LazyLock::new(|| {
-    reqwest::Client::builder()
-        .user_agent(USER_AGENT)
-        .timeout(FETCH_TIMEOUT)
-        .gzip(true)
-        .build()
-        .expect("HTTP client builds with the rustls TLS backend")
 });
 
 /// A single radar frame. Serializes to the renderer's `RawFrame` shape.
@@ -80,7 +67,7 @@ pub async fn get_radar_frames(domain: String) -> Result<RadarFrameResponse, Stri
         .header(reqwest::header::ACCEPT, "text/html,application/xhtml+xml")
         .send()
         .await
-        .map_err(describe_fetch_error)?;
+        .map_err(|err| describe_fetch_error("Cambodia Meteo", err))?;
 
     if !response.status().is_success() {
         return Err(format!(
@@ -89,7 +76,7 @@ pub async fn get_radar_frames(domain: String) -> Result<RadarFrameResponse, Stri
         ));
     }
 
-    let bytes = response.bytes().await.map_err(describe_fetch_error)?;
+    let bytes = response.bytes().await.map_err(|err| describe_fetch_error("Cambodia Meteo", err))?;
     let html = String::from_utf8_lossy(&bytes);
     let frames = parse_radar_frames(&html);
 
@@ -114,7 +101,7 @@ pub async fn get_radar_image(url: String) -> Result<String, String> {
         .header(reqwest::header::ACCEPT, "image/jpeg,image/*")
         .send()
         .await
-        .map_err(describe_fetch_error)?;
+        .map_err(|err| describe_fetch_error("Cambodia Meteo", err))?;
 
     if !response.status().is_success() {
         return Err(format!(
@@ -134,18 +121,9 @@ pub async fn get_radar_image(url: String) -> Result<String, String> {
         return Err("Radar image response was not an image.".to_string());
     }
 
-    let bytes = response.bytes().await.map_err(describe_fetch_error)?;
+    let bytes = response.bytes().await.map_err(|err| describe_fetch_error("Cambodia Meteo", err))?;
     let encoded = base64::engine::general_purpose::STANDARD.encode(&bytes);
     Ok(format!("data:{content_type};base64,{encoded}"))
-}
-
-/// Maps a transport-level fetch failure to a short, user-facing message.
-fn describe_fetch_error(error: reqwest::Error) -> String {
-    if error.is_timeout() {
-        "Cambodia Meteo request timed out.".to_string()
-    } else {
-        "Could not reach Cambodia Meteo.".to_string()
-    }
 }
 
 /// Current UTC time as an ISO-8601 string, matching JS `Date.toISOString()`.
