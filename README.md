@@ -5,6 +5,15 @@ built with [Tauri v2](https://v2.tauri.app/).
 
 ![rainwatch-kh screenshot](rainwatch-kh.png)
 
+## Features
+
+- Cambodia Meteo radar — PHN (80 km), 240 km, and Cambodia (450 km) domains
+- Animated playback with timeline scrubber and adjustable speed
+- Hourly weather forecasts and provincial capital conditions from Open-Meteo
+- 3D terrain with switchable basemap styles
+- Auto-rotate when idle for ambient display
+- Native installers for Linux, Windows, and macOS
+
 ## Develop
 
 ```bash
@@ -86,9 +95,16 @@ Edit `styleUrl` to use a trusted MapLibre style URL, and tune each domain's
 radar overlay.
 
 The app crops the left `800x800` radar panel from each `1069x800` Cambodia
-Meteo frame and renders it as a MapLibre `image` source. Use the on-screen
-georeference panel to adjust the four image corners and copy updated config
-values.
+Meteo frame and renders it as a MapLibre `image` source.
+
+### Re-calibrating corner coordinates (dev only)
+
+Run `npm run tauri dev -- --calibrate` (or `--debug-positioning`) to enable an
+on-screen panel for nudging the four corners, scaling, and rotating the
+overlay; it prints an updated `coordinates` snippet to paste back into
+`map-config.ts`. The panel is gated by `is_calibration_enabled` in
+`src-tauri/src/lib.rs` and is hidden in release builds — it is not part of the
+end-user UI.
 
 MapLibre styles must provide their own tile sources, glyphs, sprites, and
 attribution. Do not use `mapbox://` style URLs or commit provider API keys.
