@@ -55,8 +55,14 @@ export function App() {
             <List.Item>
               Cambodia Meteo radar — PHN (80 km), 240 km, and Cambodia (450 km) domains
             </List.Item>
-            <List.Item>MapLibre GL with a georeferenced radar overlay</List.Item>
-            <List.Item>On-screen georeference panel to fine-tune image corners</List.Item>
+            <List.Item>
+              Animated playback with timeline scrubber and adjustable speed
+            </List.Item>
+            <List.Item>
+              Hourly weather forecasts and provincial capital conditions from Open-Meteo
+            </List.Item>
+            <List.Item>3D terrain with switchable basemap styles</List.Item>
+            <List.Item>Auto-rotate when idle for ambient display</List.Item>
             <List.Item>Native installers for Linux, Windows, and macOS</List.Item>
           </List>
         </Stack>
